@@ -1,6 +1,15 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from . import views
+# from .views import MessageModelListView
+from rest_framework.routers import DefaultRouter
+from .api_views import PostViewSet, UserViewSet
+
+router = DefaultRouter()
+# router.register('test', Post, 'messages')
+router.register(r'posts', PostViewSet)
+router.register(r'users', UserViewSet)
+# router.register(r'all_posts', PostViewSet)
 
 urlpatterns = [
     path('profile/', views.profile, name='profile'),
@@ -20,5 +29,9 @@ urlpatterns = [
     path('user/<str:username>/', views.DisplayUsersPosts.as_view(), name='user-posts'),
     path('login/', auth_views.LoginView.as_view(template_name="sampleApp/login.html"), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name="sampleApp/logout.html"), name='logout'),
-    path('register/', views.register_user, name='register')
+    path('register/', views.register_user, name='register'),
+
+    # api views
+    path('api/', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
