@@ -24,7 +24,11 @@ SECRET_KEY = 'django-insecure-o4re$f87&un8a9=7+8fn!l2=#&08rmfqz*dzfbe*iom!mm83gk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '10.0.2.2',
+]
 
 # Application definition
 
@@ -131,3 +135,10 @@ LOGIN_URL = 'login'
 
 # auto logout while closing the browser
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_PARSER_CLASSES': [
+#         'rest_framework.parsers.JSONParser',
+#     ]
+# }
