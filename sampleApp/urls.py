@@ -3,12 +3,13 @@ from django.contrib.auth import views as auth_views
 from . import views
 # from .views import MessageModelListView
 from rest_framework.routers import DefaultRouter
-from .api_views import PostViewSet, UserViewSet
+from .api_views import PostViewSet, UserViewSet, CommentViewSet
 
 router = DefaultRouter()
 # router.register('test', Post, 'messages')
 router.register(r'posts', PostViewSet)
 router.register(r'users', UserViewSet)
+router.register(r'comments', CommentViewSet)
 # router.register(r'all_posts', PostViewSet)
 
 urlpatterns = [
