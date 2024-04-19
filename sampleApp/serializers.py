@@ -14,15 +14,6 @@ class PostAttachmentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UserSerializer(serializers.ModelSerializer):
-    # probably not needed to see comments here
-    comments = CommentSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'comments']
-
-
 class PostSerializer(serializers.ModelSerializer):
     attachments = PostAttachmentSerializer(many=True, read_only=True)
 
@@ -32,6 +23,18 @@ class PostSerializer(serializers.ModelSerializer):
         fields = '__all__'
         # with depth>=0 the return json contains creator details, with depth==0 there is only creator's id
         # depth = 1
+
+
+class UserSerializer(serializers.ModelSerializer):
+    # probably not needed to see comments here
+    comments = CommentSerializer(many=True, read_only=True)
+
+    # mozliwe ze to aktualnie zakomentowane bedzie lepsze do tego
+    user_posts = PostSerializer(many=True, read_only=True)
+    # user_posts = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'comments', 'user_posts']
 
 
 class PostDetailsSerializer(serializers.ModelSerializer):

@@ -26,7 +26,7 @@ class Post(models.Model):
     content = models.TextField()
     createdDate = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(User, default=None, blank=True, related_name='post_like')
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_posts')
 
     def __str__(self):
         return f"content: {self.content} | creator: {self.creator} | id: {self.id}"

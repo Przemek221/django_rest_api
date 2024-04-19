@@ -3,14 +3,14 @@ from django.contrib.auth import views as auth_views
 from . import views
 # from .views import MessageModelListView
 from rest_framework.routers import DefaultRouter
-from .api_views import PostViewSet, UserViewSet, CommentViewSet
+from . import api_views
 
 router = DefaultRouter()
 # router.register('test', Post, 'messages')
-router.register(r'posts', PostViewSet)
-router.register(r'users', UserViewSet)
-router.register(r'comments', CommentViewSet)
-# router.register(r'all_posts', PostViewSet)
+router.register(r'posts', api_views.PostViewSet)
+router.register(r'users', api_views.UserViewSet)
+router.register(r'comments', api_views.CommentViewSet)
+router.register(r'profile', api_views.ProfileViewSet, basename='profile')
 
 urlpatterns = [
     path('profile/', views.profile, name='profile'),
@@ -33,6 +33,7 @@ urlpatterns = [
     path('register/', views.register_user, name='register'),
 
     # api views
+    # path('api/profile/', api_views.LoggedInUserView.as_view(), name='profile'),
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
