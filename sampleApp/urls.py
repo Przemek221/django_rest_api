@@ -10,7 +10,8 @@ router = DefaultRouter()
 router.register(r'posts', api_views.PostViewSet)
 router.register(r'users', api_views.UserViewSet)
 router.register(r'comments', api_views.CommentViewSet)
-router.register(r'profile', api_views.ProfileViewSet, basename='profile')
+router.register(r'profile', api_views.ProfileViewSet, basename='profile1')
+# router.register(r'postLike', api_views.apiLike, basename='postLike')
 
 urlpatterns = [
     path('profile/', views.profile, name='profile'),
@@ -22,6 +23,11 @@ urlpatterns = [
     path('post/<int:pk>/comment/<int:comment_id>/delete/', views.comment_delete, name="comment-delete"),
     path('post/new/', views.create_post, name='post-create'),
     path('post-like/<int:pk>/', views.post_like, name="post-like"),
+    path('post-like/<int:pk>/<int:var>', views.post_like, name="post-like"),
+    # path('post-like/<int:pk>/', api_views.post_like, name="post-like"),
+
+    path('api/postLike/<int:pk>/', api_views.apiLike, name="postLike"),
+
     # variable must be called "pk" in this template
     path('post/<int:pk>/update/', views.UpdatePost.as_view(), name='post-update'),
     path('post/<int:pk>/update/attachment/<int:attachment_id>/delete/', views.attachment_delete,
@@ -34,6 +40,11 @@ urlpatterns = [
 
     # api views
     # path('api/profile/', api_views.LoggedInUserView.as_view(), name='profile'),
-    path('api/', include(router.urls)),
+    path('api/', include(router.urls), name="api"),
+
+    # path(
+    #     'api/',
+    #     RedirectView.as_view(url='hoge/huga')),
+
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
