@@ -1,5 +1,10 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.http.response import HttpResponseRedirectBase
+from django.shortcuts import redirect
 from rest_framework import viewsets
+from rest_framework.decorators import api_view
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -98,3 +103,80 @@ class LoggedInUserView(APIView):
     def get(self, request):
         serializer = UserSerializer(self.request.user)
         return Response(serializer.data)
+
+# class PostLikeView(APIView):
+#     def post(self, request):
+
+
+# class PostLikeViewSet(viewsets.ModelViewSet):
+#     serializer_class = PostSerializer
+
+class HttpResponseTemporaryRedirect(HttpResponseRedirectBase):
+    status_code = 307
+
+
+# To-do - zrobic aby post like zwracal redirect do glownej strony api lub do post details
+@login_required
+def post_like(request, pk):
+    # in this case it's the post id, so it can be replaced with function 'pk' argument, which is primary key
+    post = get_object_or_404(Post, id=pk)
+
+    x = Response()
+    x['abc'] = 3
+
+    return x
+    # if post.likes.filter(id=request.user.id).exists():
+    #     post.likes.remove(request.user)
+    # else:
+    #     post.likes.add(request.user)
+
+    # if request.POST.get('next') is not None:
+        # return HttpResponseRedirect(request.POST.get('next'), status_code=307)
+        # return HttpResponseTemporaryRedirect(request.POST.get('next'))
+        # return redirect('api')
+        # serializer = PostSerializer()
+        # return Response(serializer.data)
+    # else:
+    #     serializer = PostSerializer()
+    #     return Response(serializer.data)
+        # return PostViewSet()
+        # return redirect('api')
+        # return
+        # return redirect(request.user.user_posts)
+        # return redirect('api_views/profile')
+
+
+@api_view(
+    # ['POST']
+)
+@login_required
+def apiLike(request, pk):
+    post = get_object_or_404(Post, id=pk)
+
+    if post.likes.filter(id=request.user.id).exists():
+        post.likes.remove(request.user)
+    else:
+        post.likes.add(request.user)
+
+    if request.POST.get('next') is not None:
+
+        # to zaimplementowc tutaj!!!
+        # if kwargs:
+        #     if kwargs['var'] == 3:
+        #         return HttpResponseRedirect('http://localhost:8000/api/posts')
+
+        # if user posts -> usr posts
+        # if home -> home
+        # if post details -> post details
+        return redirect(request.POST.get('next'))
+        # return redirect('home')
+        # return redirect('api/posts')
+    else:
+        return redirect('/api/posts/')
+        # return redirect(request.user.user_posts)
+        # return redirect('api_views/profile')
+
+# nie dziala !!!!
+    # return redirect('api')
+# dziala !!!!!!
+#     return redirect('/api/')

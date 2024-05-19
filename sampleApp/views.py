@@ -53,7 +53,7 @@ class DisplayUsersPosts(ListView):
 
 
 @login_required
-def post_like(request, pk):
+def post_like(request, pk, **kwargs):
     # in this case it's the post id, so it can be replaced with function 'pk' argument, which is primary key
     post = get_object_or_404(Post, id=pk)
     if post.likes.filter(id=request.user.id).exists():
@@ -62,9 +62,26 @@ def post_like(request, pk):
         post.likes.add(request.user)
 
     if request.POST.get('next') is not None:
-        return HttpResponseRedirect(request.POST.get('next'))
-    else:
+
+        # if kwargs:
+        #     if kwargs['var'] == 3:
+        #         return HttpResponseRedirect('http://localhost:8000/api/posts')
+
+        # if user posts -> usr posts
+        # if home -> home
+        # if post details -> post details
+
+
+
+        # return HttpResponseRedirect('http://localhost:8000/api')
+        # return HttpResponseRedirect('http://localhost:8000/api')
+        # return redirect(request.POST.get('next'))
         return redirect('home')
+        # return redirect('api/posts')
+    else:
+        return redirect('api')
+        # return redirect(request.user.user_posts)
+        # return redirect('api_views/profile')
 
 
 def post_details(request, pk):
