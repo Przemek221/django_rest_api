@@ -8,7 +8,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import PostSerializer, UserSerializer, CommentSerializer, PostDetailsSerializer
+from .serializers import PostSerializer, UserDetailsSerializer, CommentSerializer, PostDetailsSerializer, UserSerializer
 from .models import Post, Comment
 from rest_framework.pagination import PageNumberPagination
 
@@ -46,6 +46,10 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     displayProfile = False
 
+    def get_serializer_class(self):
+        if hasattr(self, 'action') and self.action == 'retrieve':
+            return UserDetailsSerializer
+        return super().get_serializer_class()
     # def __init__(self):
     #     x = False
     #     return super().__init__(self)
@@ -86,7 +90,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class ProfileViewSet(viewsets.ModelViewSet):
     # better than LoggedInUserView cause the POST requests can be done here
     # queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserDetailsSerializer
 
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -101,8 +105,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 class LoggedInUserView(APIView):
     def get(self, request):
-        serializer = UserSerializer(self.request.user)
+        serializer = UserDetailsSerializer(self.request.user)
         return Response(serializer.data)
+
 
 # class PostLikeView(APIView):
 #     def post(self, request):
@@ -131,19 +136,19 @@ def post_like(request, pk):
     #     post.likes.add(request.user)
 
     # if request.POST.get('next') is not None:
-        # return HttpResponseRedirect(request.POST.get('next'), status_code=307)
-        # return HttpResponseTemporaryRedirect(request.POST.get('next'))
-        # return redirect('api')
-        # serializer = PostSerializer()
-        # return Response(serializer.data)
+    # return HttpResponseRedirect(request.POST.get('next'), status_code=307)
+    # return HttpResponseTemporaryRedirect(request.POST.get('next'))
+    # return redirect('api')
+    # serializer = PostSerializer()
+    # return Response(serializer.data)
     # else:
     #     serializer = PostSerializer()
     #     return Response(serializer.data)
-        # return PostViewSet()
-        # return redirect('api')
-        # return
-        # return redirect(request.user.user_posts)
-        # return redirect('api_views/profile')
+    # return PostViewSet()
+    # return redirect('api')
+    # return
+    # return redirect(request.user.user_posts)
+    # return redirect('api_views/profile')
 
 
 @api_view(
@@ -177,6 +182,6 @@ def apiLike(request, pk):
         # return redirect('api_views/profile')
 
 # nie dziala !!!!
-    # return redirect('api')
+# return redirect('api')
 # dziala !!!!!!
 #     return redirect('/api/')

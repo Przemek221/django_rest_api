@@ -14,6 +14,12 @@ class PostAttachmentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
+
+
 class PostSerializer(serializers.ModelSerializer):
     attachments = PostAttachmentSerializer(many=True, read_only=True)
 
@@ -25,16 +31,26 @@ class PostSerializer(serializers.ModelSerializer):
         # depth = 1
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserDetailsSerializer(serializers.ModelSerializer):
     # probably not needed to see comments here
     comments = CommentSerializer(many=True, read_only=True)
-
+    userprofile = UserProfileSerializer(many=False, read_only=True)
     # mozliwe ze to aktualnie zakomentowane bedzie lepsze do tego
     user_posts = PostSerializer(many=True, read_only=True)
+
     # user_posts = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'comments', 'user_posts']
+        fields = ['id', 'username', 'email', 'comments', 'user_posts', 'userprofile']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    # probably not needed to see comments here
+    userprofile = UserProfileSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'userprofile']
 
 
 class PostDetailsSerializer(serializers.ModelSerializer):
@@ -42,6 +58,7 @@ class PostDetailsSerializer(serializers.ModelSerializer):
     # https://stackoverflow.com/questions/46260695/django-rest-framework-get-related-objects
     comments = CommentSerializer(many=True, read_only=True)
     attachments = PostAttachmentSerializer(many=True, read_only=True)
+    creator = UserSerializer(many=False, read_only=True)
 
     class Meta:
         model = Post
