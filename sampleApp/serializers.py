@@ -20,8 +20,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserSerializer(serializers.ModelSerializer):
+    # probably not needed to see comments here
+    userprofile = UserProfileSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'userprofile']
+
+
 class PostSerializer(serializers.ModelSerializer):
     attachments = PostAttachmentSerializer(many=True, read_only=True)
+    creator = UserSerializer(many=False, read_only=True)
 
     class Meta:
         model = Post
@@ -42,15 +52,6 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'comments', 'user_posts', 'userprofile']
-
-
-class UserSerializer(serializers.ModelSerializer):
-    # probably not needed to see comments here
-    userprofile = UserProfileSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'userprofile']
 
 
 class PostDetailsSerializer(serializers.ModelSerializer):
