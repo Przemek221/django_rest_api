@@ -11,6 +11,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class PostAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostAttachment
+        # fields = ['attachment']
         fields = '__all__'
 
 
@@ -39,6 +40,47 @@ class PostSerializer(serializers.ModelSerializer):
         fields = '__all__'
         # with depth>=0 the return json contains creator details, with depth==0 there is only creator's id
         # depth = 1
+
+
+class PostCreateSerializer(serializers.ModelSerializer):
+    # attachments = PostAttachmentSerializer(many=True, read_only=False)
+    # attachments = PostAttachmentSerializer(many=True, required=False, read_only=False)
+    attachments = serializers.ListField(
+        child=serializers.FileField(use_url=False, max_length=100000, allow_empty_file=False), write_only=True,
+        required=False)
+
+    # zwraca urle do plikow
+    # attachments_urls = serializers.SerializerMethodField(read_only=True)
+
+    # creator = UserSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Post
+        read_only_fields = ['id']
+        fields = ['id', 'content', 'attachments']
+
+        # this ensures that the return value will be only post id.
+        extra_kwargs = {
+            'content': {'write_only': True},
+            # 'creator': {'write_only': True},
+        }
+
+    def create(self, validated_data):
+        # attachments = self.initial_data.pop('attachments')
+        attachments = []
+        if 'attachments' in validated_data:
+            attachments = validated_data.pop('attachments')
+        # validated_data['attachments'] = []
+        created_post = Post.objects.create(**validated_data)
+        for attachment in attachments:
+            PostAttachment.objects.create(relatedPost=created_post, attachment=attachment)
+            # PostAttachment.objects.create(relatedPost=created_post, **attachment)
+        return created_post
+
+    # def get_attachments_urls(self, obj):
+    #     attachments_urls = PostAttachment.objects.filter(relatedPost=obj)
+    #     return [attachment.attachment.url for attachment in obj.attachments.all()]
+    # return PostAttachmentSerializer(attachments_urls, many=True).data
 
 
 class UserDetailsSerializer(serializers.ModelSerializer):

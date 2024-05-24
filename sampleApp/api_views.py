@@ -2,42 +2,42 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http.response import HttpResponseRedirectBase
 from django.shortcuts import redirect
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from .serializers import PostSerializer, UserDetailsSerializer, CommentSerializer, PostDetailsSerializer, UserSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import PostSerializer, UserDetailsSerializer, CommentSerializer, PostDetailsSerializer, \
+    UserSerializer, PostCreateSerializer
 from .models import Post, Comment
 from rest_framework.pagination import PageNumberPagination
 
 
 class PostPaginationClass(PageNumberPagination):
-    page_size = 2
+    page_size = 15
     page_size_query_param = 'page_size'
-    max_page_size = 2
+    max_page_size = 15
 
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = PostPaginationClass
+    parser_classes = (MultiPartParser, FormParser)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
-        if hasattr(self, 'action') and self.action == 'retrieve':
-            return PostDetailsSerializer
-        return PostSerializer  # I don't know what you want for create/destroy/update.
+        if hasattr(self, 'action'):
+            if self.action == 'retrieve':
+                return PostDetailsSerializer
+            elif self.action == 'create':
+                return PostCreateSerializer
+        return super().get_serializer_class()
 
-    # retrieve is used when returning single item
-    # def retrieve(self, request, *args, **kwargs):
-    #     queryset = super().retrieve(request, *args, **kwargs)
-    #     queryset.data['test_data'] = 0
-    #     return queryset
-
-    # list is used when returning multiple objects
-    # def list(self, request, *args, **kwargs):
-    #     return {'a': 2}
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -101,6 +101,19 @@ class ProfileViewSet(viewsets.ModelViewSet):
         # else:
         #     return Response({'message': 'you are not logged in'}, status=401)
         # return self.request.user.is_authenticated()
+
+
+class Logout(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            token = RefreshToken(request.data.get('refresh'))
+            token.blacklist()
+            return Response(status=status.HTTP_200_OK, data={'message': 'Success'})
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'{e}'})
 
 
 class LoggedInUserView(APIView):
