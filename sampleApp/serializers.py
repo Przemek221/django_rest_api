@@ -22,12 +22,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # probably not needed to see comments here
     userprofile = UserProfileSerializer(many=False, read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'userprofile']
+        fields = ['id', 'username', 'password', 'email', 'userprofile']
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
+
+    def create(self, validated_data):
+        return User.objects.create_user(username=validated_data['username'], password=validated_data['password'])
 
 
 class PostSerializer(serializers.ModelSerializer):
