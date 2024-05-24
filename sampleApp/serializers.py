@@ -1,4 +1,8 @@
-from rest_framework import serializers
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers, status
+from rest_framework.response import Response
+
 from .models import *
 
 
@@ -53,8 +57,10 @@ class PostCreateSerializer(serializers.ModelSerializer):
     attachments = serializers.ListField(
         child=serializers.FileField(use_url=False, max_length=100000, allow_empty_file=False), write_only=True,
         required=False)
+    attachments_delete_ids = serializers.ListField(
+        child=serializers.IntegerField(allow_null=False), required=False, write_only=True)
 
-    # zwraca urle do plikow
+    # returns urls to files -- may be useful on frontend
     # attachments_urls = serializers.SerializerMethodField(read_only=True)
 
     # creator = UserSerializer(many=False, read_only=True)
@@ -62,13 +68,19 @@ class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         read_only_fields = ['id']
-        fields = ['id', 'content', 'attachments']
+        fields = ['id', 'content', 'attachments', 'attachments_delete_ids']
 
         # this ensures that the return value will be only post id.
         extra_kwargs = {
             'content': {'write_only': True},
-            # 'creator': {'write_only': True},
         }
+
+    def validate_attachments_delete_ids(self, attachments_delete_ids):
+        for item_id in attachments_delete_ids:
+            attachment = get_object_or_404(PostAttachment, id=item_id)
+            if attachment.relatedPost != self.instance:
+                raise serializers.ValidationError("Given attachment is not related to the post")
+        return attachments_delete_ids
 
     def create(self, validated_data):
         # attachments = self.initial_data.pop('attachments')
@@ -81,6 +93,24 @@ class PostCreateSerializer(serializers.ModelSerializer):
             PostAttachment.objects.create(relatedPost=created_post, attachment=attachment)
             # PostAttachment.objects.create(relatedPost=created_post, **attachment)
         return created_post
+
+    def update(self, instance, validated_data):
+        instance.content = validated_data.get('content', instance.content)
+        instance.save()
+
+        # deleting old attachments
+        if 'attachments_delete_ids' in validated_data:
+            id_list = validated_data.get('attachments_delete_ids')
+            for item_id in id_list:
+                PostAttachment.objects.get(id=item_id).delete()
+
+        # adding new attachments
+        if 'attachments' in validated_data:
+            attachments = validated_data.get('attachments')
+            for attachment in attachments:
+                PostAttachment.objects.create(relatedPost=instance, attachment=attachment)
+
+        return instance
 
     # def get_attachments_urls(self, obj):
     #     attachments_urls = PostAttachment.objects.filter(relatedPost=obj)

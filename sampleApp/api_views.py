@@ -33,12 +33,18 @@ class PostViewSet(viewsets.ModelViewSet):
         if hasattr(self, 'action'):
             if self.action == 'retrieve':
                 return PostDetailsSerializer
-            elif self.action == 'create':
+            elif self.action == 'create' or self.action == 'update' or self.action == 'partial_update':
                 return PostCreateSerializer
         return super().get_serializer_class()
 
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.creator != request.user:
+            return Response({'message': 'You are not the post creator'}, status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
 
 
 class UserViewSet(viewsets.ModelViewSet):
