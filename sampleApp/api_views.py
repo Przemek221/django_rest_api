@@ -2,13 +2,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http.response import HttpResponseRedirectBase
 from django.shortcuts import redirect
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import PostSerializer, UserDetailsSerializer, CommentSerializer, PostDetailsSerializer, \
     UserSerializer, PostCreateSerializer
@@ -46,8 +47,22 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response({'message': 'You are not the post creator'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.creator != request.user:
+            return Response({'message': 'You are not the post creator'}, status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
 
-class UserViewSet(viewsets.ModelViewSet):
+
+class UserViewSet(
+    # viewsets.ModelViewSet,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    # mixins.UpdateModelMixin, # User can update only self => handled in ProfileViewSet
+    # mixins.DestroyModelMixin, # User cannot delete itself. If so, it will be handled in ProfileViewSet
+    mixins.ListModelMixin,
+    GenericViewSet
+):
     queryset = User.objects.all()
     # queryset = User.objects.get(pk=self.request.user.id)
     serializer_class = UserSerializer
@@ -92,12 +107,20 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     # https://stackoverflow.com/questions/67962024/how-to-query-related-object-in-drf-viewsets-modelviewset
     serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class ProfileViewSet(viewsets.ModelViewSet):
+class ProfileViewSet(
+    # mixins.CreateModelMixin, # handled in UserViewSet
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    # mixins.DestroyModelMixin, # As for now, User cannot delete account by itself
+    mixins.ListModelMixin,
+    GenericViewSet
+):
     # better than LoggedInUserView cause the POST requests can be done here
-    # queryset = User.objects.all()
     serializer_class = UserDetailsSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -123,10 +146,10 @@ class Logout(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'{e}'})
 
 
-class LoggedInUserView(APIView):
-    def get(self, request):
-        serializer = UserDetailsSerializer(self.request.user)
-        return Response(serializer.data)
+# class LoggedInUserView(APIView):
+#     def get(self, request):
+#         serializer = UserDetailsSerializer(self.request.user)
+#         return Response(serializer.data)
 
 
 # class HttpResponseTemporaryRedirect(HttpResponseRedirectBase):

@@ -1,0 +1,28 @@
+Bodies for HTTP requests handled by API:
+
+To every request it's needed to add access token in headers
+
+Post:
+Create{
+    content: text,
+    attachments: list of files
+}
+Update{
+    content: new content,
+    attachments: list of new files,
+    attachments_delete_ids: list of attachment IDs to delete
+}
+Delete{
+    can be empty body, just need to send delete request
+}
+Like{
+    nothing
+}
+
+User:
+Create and Authorization{
+    username,password
+}
+Logout{
+    refresh: refresh token
+}

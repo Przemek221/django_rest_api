@@ -6,12 +6,10 @@ from rest_framework.routers import DefaultRouter
 from . import api_views
 
 router = DefaultRouter()
-# router.register('test', Post, 'messages')
 router.register(r'posts', api_views.PostViewSet)
 router.register(r'users', api_views.UserViewSet)
 router.register(r'comments', api_views.CommentViewSet)
-router.register(r'profile', api_views.ProfileViewSet, basename='profile1')
-# router.register(r'postLike', api_views.apiLike, basename='postLike')
+router.register(r'profile', api_views.ProfileViewSet, basename='user_profile')
 
 urlpatterns = [
     path('profile/', views.profile, name='profile'),
@@ -38,10 +36,6 @@ urlpatterns = [
     # path('api/profile/', api_views.LoggedInUserView.as_view(), name='profile'),
     path('api/', include(router.urls), name="api"),
     path('api/posts/<int:pk>/like/', api_views.post_like, name="post_like"),
-
-    # path(
-    #     'api/',
-    #     RedirectView.as_view(url='hoge/huga')),
 
     # authentication:
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
