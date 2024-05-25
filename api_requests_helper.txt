@@ -26,3 +26,12 @@ Create and Authorization{
 Logout{
     refresh: refresh token
 }
+
+Comment:
+Create{
+    content: text,
+    relatedPost: id of related post
+}
+Delete{
+    no data required, just send a delete request on /comments/<id>/
+}

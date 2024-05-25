@@ -9,6 +9,7 @@ from .models import *
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
+        read_only_fields = ['creator', 'id', 'createdDate']
         fields = '__all__'
 
 

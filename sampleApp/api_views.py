@@ -103,11 +103,26 @@ class UserViewSet(
     # return super().get_object()
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    # mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
     queryset = Comment.objects.all()
-    # https://stackoverflow.com/questions/67962024/how-to-query-related-object-in-drf-viewsets-modelviewset
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.creator != request.user:
+            return Response({'message': 'You are not the comment creator'}, status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
 
 
 class ProfileViewSet(
