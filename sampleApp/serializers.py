@@ -148,7 +148,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         read_only_fields = ['creator', 'id', 'createdDate']
-        fields = ['creator', 'id', 'createdDate', 'content', 'requestUserIsOwner']
+        fields = ['creator', 'id', 'createdDate', 'content', 'relatedPost', 'requestUserIsOwner']
 
     def get_request_user(self):
         user = None
