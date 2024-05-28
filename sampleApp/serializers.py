@@ -6,13 +6,6 @@ from rest_framework.response import Response
 from .models import *
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        read_only_fields = ['creator', 'id', 'createdDate']
-        fields = '__all__'
-
-
 class PostAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostAttachment
@@ -43,6 +36,8 @@ class UserSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     attachments = PostAttachmentSerializer(many=True, read_only=True)
     creator = UserSerializer(many=False, read_only=True)
+    requestUserIsOwner = serializers.SerializerMethodField(read_only=True)
+    requestUserLiked = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Post
@@ -50,6 +45,21 @@ class PostSerializer(serializers.ModelSerializer):
         fields = '__all__'
         # with depth>=0 the return json contains creator details, with depth==0 there is only creator's id
         # depth = 1
+
+    def get_request_user(self):
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+        return user
+
+    def get_requestUserIsOwner(self, instance):
+        user = self.get_request_user()
+        return user == instance.creator
+
+    def get_requestUserLiked(self, instance):
+        user = self.get_request_user()
+        return instance.likes.filter(id=user.pk).exists()
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
@@ -121,27 +131,61 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
 class UserDetailsSerializer(serializers.ModelSerializer):
     # probably not needed to see comments here
-    comments = CommentSerializer(many=True, read_only=True)
+    # comments = CommentSerializer(many=True, read_only=True)
     userprofile = UserProfileSerializer(many=False, read_only=True)
     # mozliwe ze to aktualnie zakomentowane bedzie lepsze do tego
     user_posts = PostSerializer(many=True, read_only=True)
 
-    # user_posts = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'comments', 'user_posts', 'userprofile']
+        fields = ['id', 'username', 'email', 'user_posts', 'userprofile']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    requestUserIsOwner = serializers.SerializerMethodField(read_only=True)
+    creator = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Comment
+        read_only_fields = ['creator', 'id', 'createdDate']
+        fields = ['creator', 'id', 'createdDate', 'content', 'requestUserIsOwner']
+
+    def get_request_user(self):
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+        return user
+
+    def get_requestUserIsOwner(self, instance):
+        user = self.get_request_user()
+        return user == instance.creator
 
 
 class PostDetailsSerializer(serializers.ModelSerializer):
-    # Allows to find comments by 'related name' from models.py
-    # https://stackoverflow.com/questions/46260695/django-rest-framework-get-related-objects
     comments = CommentSerializer(many=True, read_only=True)
     attachments = PostAttachmentSerializer(many=True, read_only=True)
     creator = UserSerializer(many=False, read_only=True)
+    requestUserIsOwner = serializers.SerializerMethodField(read_only=True)
+    requestUserLiked = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Post
-        # model = PostAttachment
         fields = '__all__'
         # with depth>=0 the return json contains creator details, with depth==0 there is only creator's id
         # depth = 1
+
+    def get_request_user(self):
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+        return user
+
+    def get_requestUserIsOwner(self, instance):
+        user = self.get_request_user()
+        return user == instance.creator
+
+    def get_requestUserLiked(self, instance):
+        user = self.get_request_user()
+        return instance.likes.filter(id=user.pk).exists()
