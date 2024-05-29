@@ -128,15 +128,6 @@ class Logout(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'{e}'})
 
 
-# class LoggedInUserView(APIView):
-#     def get(self, request):
-#         serializer = UserDetailsSerializer(self.request.user)
-#         return Response(serializer.data)
-
-
-# class HttpResponseTemporaryRedirect(HttpResponseRedirectBase):
-#     status_code = 307
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def post_like(request, pk):

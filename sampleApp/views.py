@@ -62,26 +62,9 @@ def post_like(request, pk, **kwargs):
         post.likes.add(request.user)
 
     if request.POST.get('next') is not None:
-
-        # if kwargs:
-        #     if kwargs['var'] == 3:
-        #         return HttpResponseRedirect('http://localhost:8000/api/posts')
-
-        # if user posts -> usr posts
-        # if home -> home
-        # if post details -> post details
-
-
-
-        # return HttpResponseRedirect('http://localhost:8000/api')
-        # return HttpResponseRedirect('http://localhost:8000/api')
-        # return redirect(request.POST.get('next'))
-        return redirect('home')
-        # return redirect('api/posts')
+        return redirect(request.POST.get('next'))
     else:
-        return redirect('api')
-        # return redirect(request.user.user_posts)
-        # return redirect('api_views/profile')
+        return redirect('home')
 
 
 def post_details(request, pk):

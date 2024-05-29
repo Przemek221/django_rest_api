@@ -9,7 +9,6 @@ from .models import *
 class PostAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostAttachment
-        # fields = ['attachment']
         fields = '__all__'
 
 
@@ -63,18 +62,11 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
-    # attachments = PostAttachmentSerializer(many=True, read_only=False)
-    # attachments = PostAttachmentSerializer(many=True, required=False, read_only=False)
     attachments = serializers.ListField(
         child=serializers.FileField(use_url=False, max_length=100000, allow_empty_file=False), write_only=True,
         required=False)
     attachments_delete_ids = serializers.ListField(
         child=serializers.IntegerField(allow_null=False), required=False, write_only=True)
-
-    # returns urls to files -- may be useful on frontend
-    # attachments_urls = serializers.SerializerMethodField(read_only=True)
-
-    # creator = UserSerializer(many=False, read_only=True)
 
     class Meta:
         model = Post
@@ -102,7 +94,6 @@ class PostCreateSerializer(serializers.ModelSerializer):
         created_post = Post.objects.create(**validated_data)
         for attachment in attachments:
             PostAttachment.objects.create(relatedPost=created_post, attachment=attachment)
-            # PostAttachment.objects.create(relatedPost=created_post, **attachment)
         return created_post
 
     def update(self, instance, validated_data):
@@ -123,17 +114,9 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
         return instance
 
-    # def get_attachments_urls(self, obj):
-    #     attachments_urls = PostAttachment.objects.filter(relatedPost=obj)
-    #     return [attachment.attachment.url for attachment in obj.attachments.all()]
-    # return PostAttachmentSerializer(attachments_urls, many=True).data
-
 
 class UserDetailsSerializer(serializers.ModelSerializer):
-    # probably not needed to see comments here
-    # comments = CommentSerializer(many=True, read_only=True)
     userprofile = UserProfileSerializer(many=False, read_only=True)
-    # mozliwe ze to aktualnie zakomentowane bedzie lepsze do tego
     user_posts = PostSerializer(many=True, read_only=True)
 
     class Meta:

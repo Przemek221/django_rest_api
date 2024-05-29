@@ -33,7 +33,6 @@ urlpatterns = [
     path('register/', views.register_user, name='register'),
 
     # api views
-    # path('api/profile/', api_views.LoggedInUserView.as_view(), name='profile'),
     path('api/', include(router.urls), name="api"),
     path('api/posts/<int:pk>/like/', api_views.post_like, name="post_like"),
 
