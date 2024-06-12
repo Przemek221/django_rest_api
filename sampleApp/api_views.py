@@ -3,13 +3,13 @@ from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import PostSerializer, UserDetailsSerializer, CommentSerializer, PostDetailsSerializer, \
-    UserSerializer, PostCreateSerializer
+    UserSerializer, PostCreateSerializer, UserUpdateSerializer
 from .models import Post, Comment
 from rest_framework.pagination import PageNumberPagination
 
@@ -108,10 +108,17 @@ class ProfileViewSet(
     serializer_class = UserDetailsSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_serializer_class(self):
+        if hasattr(self, 'action'):
+            if self.action == 'retrieve' or self.action == 'update' or self.action == 'partial_update':
+                return UserUpdateSerializer
+        return super().get_serializer_class()
+
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
     def get_object(self):
+        # doesn't matter which id will be passed in url, it will always return current user
         return self.request.user
 
 

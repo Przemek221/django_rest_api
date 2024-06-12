@@ -1,8 +1,5 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers, status
-from rest_framework.response import Response
-
+from rest_framework import serializers
 from .models import *
 
 
@@ -15,6 +12,7 @@ class PostAttachmentSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
+        read_only_fields = ['user', 'id']
         fields = '__all__'
 
 
@@ -122,6 +120,33 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'user_posts', 'userprofile']
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    userprofile = UserProfileSerializer(many=False, read_only=False, required=False)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'userprofile', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False},
+            'username': {'required': False},
+        }
+
+    def update(self, instance, validated_data):
+        userprofile_data = validated_data.pop('userprofile', instance.userprofile)
+        # If there is no userprofile data, the pop operation sets userprofile_data to current instance of userprofile
+        if userprofile_data != instance.userprofile:
+            userprofile = instance.userprofile
+            userprofile.image = userprofile_data.get('image', userprofile.image)
+            userprofile.save()
+
+        password = validated_data.pop('password', None)
+        if password is not None:
+            instance.set_password(password)
+            instance.save()
+
+        return super().update(instance, validated_data)
 
 
 class CommentSerializer(serializers.ModelSerializer):
