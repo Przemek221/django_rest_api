@@ -31,8 +31,28 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create_user(username=validated_data['username'], password=validated_data['password'])
 
+class CommentSerializer(serializers.ModelSerializer):
+    requestUserIsOwner = serializers.SerializerMethodField(read_only=True)
+    creator = UserSerializer(read_only=True)
 
+    class Meta:
+        model = Comment
+        read_only_fields = ['creator', 'id', 'createdDate']
+        fields = ['creator', 'id', 'createdDate', 'content', 'relatedPost', 'requestUserIsOwner']
+
+    def get_request_user(self):
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+        return user
+
+    def get_requestUserIsOwner(self, instance):
+        user = self.get_request_user()
+        return user == instance.creator
+    
 class PostSerializer(serializers.ModelSerializer):
+    comments = CommentSerializer(many=True, read_only=True)
     attachments = PostAttachmentSerializer(many=True, read_only=True)
     creator = UserSerializer(many=False, read_only=True)
     requestUserIsOwner = serializers.SerializerMethodField(read_only=True)
@@ -124,25 +144,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'user_posts', 'userprofile']
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    requestUserIsOwner = serializers.SerializerMethodField(read_only=True)
-    creator = UserSerializer(read_only=True)
 
-    class Meta:
-        model = Comment
-        read_only_fields = ['creator', 'id', 'createdDate']
-        fields = ['creator', 'id', 'createdDate', 'content', 'relatedPost', 'requestUserIsOwner']
-
-    def get_request_user(self):
-        user = None
-        request = self.context.get("request")
-        if request and hasattr(request, "user"):
-            user = request.user
-        return user
-
-    def get_requestUserIsOwner(self, instance):
-        user = self.get_request_user()
-        return user == instance.creator
 
 
 class PostDetailsSerializer(serializers.ModelSerializer):
