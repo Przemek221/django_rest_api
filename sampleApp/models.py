@@ -6,9 +6,14 @@ from PIL import Image
 from django.urls import reverse
 
 
+def get_profile_image_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/profile_images/<filename>
+    return f"user_{instance.user.id}/profile_images/{filename}"
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
-    image = models.ImageField(default='default.jpg', upload_to='profile_images')
+    image = models.ImageField(default='default.jpg', upload_to=get_profile_image_path)
 
     def __str__(self):
         return f"Profile of the user: {self.user.username}"
